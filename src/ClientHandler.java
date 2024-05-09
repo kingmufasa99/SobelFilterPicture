@@ -1,11 +1,12 @@
 import java.io.DataOutputStream;
+import java.io.IOException;
 import java.net.Socket;
 public class ClientHandler extends Thread {
 
     private Socket socket;
     private int clientNumber;
 
-// 90% du code à coder ici
+// 90% du code à coder ici, décomposer et recomposer l'Image en octets
 
     public ClientHandler(Socket socket, int clientNumber) {
         this.socket = socket;
