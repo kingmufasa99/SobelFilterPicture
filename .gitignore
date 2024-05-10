@@ -2,4 +2,4 @@
 .metadata/*
 .idea/*
 /.metadata/
-.out/*
+out/*
