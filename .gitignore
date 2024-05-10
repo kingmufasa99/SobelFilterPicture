@@ -1,13 +1,5 @@
-# Files to include
-!.gitignore
-!*.java
-!*.md
-!*.jpg
 
 # files to exclude
 .metadata/*
 .idea/*
 /.metadata/
-*.class
-*\#
-*~
