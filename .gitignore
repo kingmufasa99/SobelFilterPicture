@@ -6,6 +6,7 @@
 
 # files to exclude
 .metadata/*
+.idea/*
 /.metadata/
 *.class
 *\#
