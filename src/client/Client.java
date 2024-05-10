@@ -30,7 +30,7 @@ public class Client {
 	public void connectToServer() throws IOException {
 
         // Get the server address from a dialog box.
-        String serverAddress = Utils.getValidIpFromUser();
+        String serverAddress = Utils.getValidAddressFromUser();
         int port = Utils.getValidPortFromUser();
 		socket = new Socket(serverAddress, port);
 		
@@ -99,7 +99,7 @@ public class Client {
 		        client.dos.write(imageBytes, 0, imageBytes.length);
 
 		        System.out.println("Image sent for modification");
-				System.out.println("[" + Utils.getUsername() + " - "+ Utils.getValidIpFromUser()+":"+ Utils.getValidPortFromUser() +" - " + java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd'@'HH:mm:ss")) + "] : Image "+Utils.getStringFromUser()+" reçue\n" +
+				System.out.println("[" + Utils.getUsername() + " - "+ Utils.getValidAddressFromUser()+":"+ Utils.getValidPortFromUser() +" - " + java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd'@'HH:mm:ss")) + "] : Image "+Utils.getStringFromUser()+" reçue\n" +
 						"pour traitement.\n");
 
 			} catch (IOException e) {

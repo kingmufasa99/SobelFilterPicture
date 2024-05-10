@@ -1,11 +1,7 @@
-/**
- * @author Adam Martin-C�t� et Laurent Pepin
- */
 package server;
 
 import commun.Message;
 import commun.Utils;
-import server.Sobel;
 
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
@@ -39,7 +35,7 @@ public class Server {
 	
 	public static void main(String[] args) throws Exception {
 		
-		String serverIp = Utils.getValidIpFromUser();
+		String serverIp = Utils.getValidAddressFromUser();
 		int port = Utils.getValidPortFromUser();
 		ServerSocket listener;
 		InetAddress locIP = InetAddress.getByName(serverIp);
@@ -55,11 +51,11 @@ public class Server {
 			return;
 		}
 		
-		// Server started
+		// Server started first
 		reader.close();
-		System.out.format("Out program server is running on %s:%d%n", serverIp, port);
+		System.out.format("The program server is running on %s:%d%n", serverIp, port);
 		
-		// Wait for clients to connect
+		// Wait for clients to connect after
 		try {
 			while (true) {
 				Socket socket = listener.accept();

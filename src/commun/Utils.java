@@ -13,7 +13,7 @@ public class Utils {
 	
     private static Scanner scanner = new Scanner(System.in);
     
-	public static String getValidIpFromUser() {
+	public static String getValidAddressFromUser() {
 		final Pattern IP_PATTERN = Pattern
 				.compile("^(([012]?\\d\\d?|2[0-4]\\d|25[0-5])\\.){3}([01]?\\d\\d?|2[0-4]\\d|25[0-5])$");
 
