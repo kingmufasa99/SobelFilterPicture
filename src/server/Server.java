@@ -2,39 +2,22 @@ package server;
 
 import commun.Message;
 import commun.Utils;
-
 import java.awt.image.BufferedImage;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.io.Writer;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
+import java.io.*;
+import java.net.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Scanner;
-
 import javax.imageio.ImageIO;
 
 public class Server {
 
 	private static Scanner reader = new Scanner(System.in);
 	private static int nClients = 0;
-	
+
 	public static void main(String[] args) throws Exception {
-		
+
 		String serverIp = Utils.getValidAddressFromUser();
 		int port = Utils.getValidPortFromUser();
 		ServerSocket listener;
@@ -50,11 +33,11 @@ public class Server {
 			reader.close();
 			return;
 		}
-		
+
 		// Server started first
 		reader.close();
 		System.out.format("The program server is running on %s:%d%n", serverIp, port);
-		
+
 		// Wait for clients to connect after
 		try {
 			while (true) {
@@ -71,13 +54,14 @@ public class Server {
 		private Socket socket;
 		private int clientNumber;
 		private String credentialsFilePath;
+
 		public ServerThread(Socket socket, int clientNumber) {
 			this.socket = socket;
 			this.clientNumber = clientNumber;
 			this.credentialsFilePath = "credentials.txt";
 			System.out.println("New connection: client #" + this.clientNumber);
 		}
-		
+
 		public void run() {
 			try {
 				// Client is connected
@@ -85,10 +69,10 @@ public class Server {
 				PrintWriter out = new PrintWriter(this.socket.getOutputStream(), true);
 				DataInputStream dis = new DataInputStream(this.socket.getInputStream());
 				DataOutputStream dos = new DataOutputStream(this.socket.getOutputStream());
-				
+
 				// Perform login
 				String username = null;
-				while (true){
+				while (true) {
 					username = Utils.readNextLineFromSocket(in);
 					String password = Utils.readNextLineFromSocket(in);
 					if (this.credentialsMatch(username, password)) {
@@ -98,16 +82,25 @@ public class Server {
 						out.println(Message.LOGIN_FAIL);
 					}
 				}
-				
+
 				// Transform pictures
 				while (true) {
+					// Check for disconnect command
+					if (in.ready()) {
+						String command = Utils.readNextLineFromSocket(in);
+						if (command.equals("DISCONNECT")) {
+							System.out.println("Client #" + this.clientNumber + " disconnected.");
+							break;
+						}
+					}
+
 					// Read file name
 					String fileName = Utils.readNextLineFromSocket(in);
 					DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd@HH:mm:ss");
 					Date date = new Date();
-					System.out.println("[" + username + " - " + this.socket.getInetAddress().toString() + ":" + this.socket.getPort() 
-						+ " - " + dateFormat.format(date) + "] : " +  fileName);
-					
+					System.out.println("[" + username + " - " + this.socket.getInetAddress().toString() + ":" + this.socket.getPort()
+							+ " - " + dateFormat.format(date) + "] : " + fileName);
+
 					// Read data
 					ByteArrayOutputStream dataContainer = new ByteArrayOutputStream();
 					byte[] dataChunk = new byte[Utils.DATA_BUFFER_SIZE];
@@ -115,24 +108,24 @@ public class Server {
 					do {
 						nBytesReceived = dis.read(dataChunk);
 						if (nBytesReceived < 0) {
-							throw new IOException();
+							throw new IOException("Error reading data from client.");
 						}
 						dataContainer.write(dataChunk, 0, nBytesReceived);
 					} while (nBytesReceived == Utils.DATA_BUFFER_SIZE);
-					
-				    // Transform image in sobel image
+
+					// Transform image using Sobel filter
 					byte[] allData = dataContainer.toByteArray();
 					ByteArrayInputStream byis = new ByteArrayInputStream(allData);
-				    BufferedImage originalImage = ImageIO.read(byis);
-				    BufferedImage sobelImage = Sobel.process(originalImage);
-				   
-				    // Send sobel image to client
-				    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		    		ImageIO.write(sobelImage, "jpg", baos);
-		    		baos.flush();
-		            byte[] imageBytes = baos.toByteArray();
-			        baos.close();
-			        dos.write(imageBytes, 0, imageBytes.length);
+					BufferedImage originalImage = ImageIO.read(byis);
+					BufferedImage sobelImage = Sobel.process(originalImage);
+
+					// Send Sobel image to client
+					ByteArrayOutputStream baos = new ByteArrayOutputStream();
+					ImageIO.write(sobelImage, "jpg", baos);
+					baos.flush();
+					byte[] imageBytes = baos.toByteArray();
+					baos.close();
+					dos.write(imageBytes, 0, imageBytes.length);
 				}
 			} catch (IOException e) {
 				System.out.println("Error with client #" + this.clientNumber + " : " + e);
@@ -144,7 +137,7 @@ public class Server {
 				}
 			}
 		}
-		
+
 		@SuppressWarnings("finally")
 		private boolean credentialsMatch(String username, String password) {
 			File file = new File(this.credentialsFilePath);
@@ -161,7 +154,7 @@ public class Server {
 					line = input.nextLine();
 					if (line.compareTo(username) == 0) {
 						line = input.nextLine();
-						// Return true if password match username, false if not
+						// Return true if password matches username, false if not
 						return (line.compareTo(password) == 0);
 					}
 				}
@@ -174,12 +167,12 @@ public class Server {
 					e1.printStackTrace();
 					return false;
 				} finally {
-					// Create fist credentials
+					// Create first credentials
 					return this.insertNewCredentials(username, password);
 				}
 			}
 		}
-		
+
 		private boolean insertNewCredentials(String username, String password) {
 			Writer output;
 			try {
@@ -195,4 +188,3 @@ public class Server {
 		}
 	}
 }
-

@@ -19,53 +19,58 @@ import commun.Utils;
 
 public class Client {
 
-    public BufferedReader in;
-    public PrintWriter out;
-    private Socket socket;
-    public DataInputStream dis;
-    public DataOutputStream dos;
-    
-    Client() {}
+	public BufferedReader in;
+	public PrintWriter out;
+	private Socket socket;
+	public DataInputStream dis;
+	public DataOutputStream dos;
+
+	Client() {}
 
 	public void connectToServer() throws IOException {
-
-        // Get the server address from a dialog box.
-        String serverAddress = Utils.getValidAddressFromUser();
-        int port = Utils.getValidPortFromUser();
+		// Get the server address from a dialog box.
+		String serverAddress = Utils.getValidAddressFromUser();
+		int port = Utils.getValidPortFromUser();
 		socket = new Socket(serverAddress, port);
-		
-        System.out.format("Connected to %s:%d%n", serverAddress, port);
-        this.in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        this.out = new PrintWriter(socket.getOutputStream(), true);
+
+		System.out.format("Connected to %s:%d%n", serverAddress, port);
+		this.in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+		this.out = new PrintWriter(socket.getOutputStream(), true);
 		this.dis = new DataInputStream(socket.getInputStream());
 		this.dos = new DataOutputStream(socket.getOutputStream());
-    }
+	}
 
-    public static void main(String[] args) throws Exception {
-    	 
-        Client client = new Client();
-        try {
-        	client.connectToServer();
-        } catch(Exception e) {
-        	System.out.println("Error while connecting -- " + e.getMessage());
-        }
-        
-        // Perform login
+	public void disconnect() throws IOException {
+		out.println("DISCONNECT");
+		socket.close();
+		System.out.println("Disconnected from server");
+	}
+
+	public static void main(String[] args) throws Exception {
+		Client client = new Client();
+		try {
+			client.connectToServer();
+		} catch(Exception e) {
+			System.out.println("Error while connecting -- " + e.getMessage());
+			return;
+		}
+
+		// Perform login
 		String response;
 		do {
 			String username = Utils.getUsername();
 			String pwd = Utils.getPassword();
 			client.out.println(username);
 			client.out.println(pwd);
-		
+
 			response = Utils.readNextLineFromSocket(client.in);
 			if(Integer.parseInt(response) != Message.LOGIN_SUCCESS) {
 				System.out.println("erreur dans la saisie du mot de passe");
 			}
 		} while (Integer.parseInt(response) != Message.LOGIN_SUCCESS);
-		
+
+		// Loop to handle image sending and receiving
 		while (true) {
-			
 			// Get a valid file to send
 			File imageToSend = null;
 			String filename = "";
@@ -83,30 +88,30 @@ public class Client {
 					System.out.println("Wrong filename, please select a valid file");
 				}
 			}
-			
+
 			// Set modified file name
 			System.out.println("Please set a name for the modified file");
 			String newFilename = Utils.getStringFromUser();
-	       
-			// Send file for modification
-	        try {
-	        	ByteArrayOutputStream baos = new ByteArrayOutputStream();
-	    		BufferedImage image = ImageIO.read(imageToSend);
-	    		ImageIO.write(image, "jpg", baos);
-	    		baos.flush();
-	            byte[] imageBytes = baos.toByteArray();
-		        baos.close();
-		        client.dos.write(imageBytes, 0, imageBytes.length);
 
-		        System.out.println("Image sent for modification");
+			// Send file for modification
+			try {
+				ByteArrayOutputStream baos = new ByteArrayOutputStream();
+				BufferedImage image = ImageIO.read(imageToSend);
+				ImageIO.write(image, "jpg", baos);
+				baos.flush();
+				byte[] imageBytes = baos.toByteArray();
+				baos.close();
+				client.dos.write(imageBytes, 0, imageBytes.length);
+
+				System.out.println("Image sent for modification");
 				System.out.println("[" + Utils.getUsername() + " - "+ Utils.getValidAddressFromUser()+":"+ Utils.getValidPortFromUser() +" - " + java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd'@'HH:mm:ss")) + "] : Image "+Utils.getStringFromUser()+" reçue\n" +
 						"pour traitement.\n");
 
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-	        
-	        // Read data (modified file)
+
+			// Read data (modified file)
 			ByteArrayOutputStream dataContainer = new ByteArrayOutputStream();
 			byte[] dataChunk = new byte[Utils.DATA_BUFFER_SIZE];
 			int nBytesReceived = 0;
@@ -117,19 +122,22 @@ public class Client {
 				}
 				dataContainer.write(dataChunk, 0, nBytesReceived);
 			} while (nBytesReceived == Utils.DATA_BUFFER_SIZE);
-			
-		    // Save image locally
+
+			// Save image locally
 			byte[] allData = dataContainer.toByteArray();
 			ByteArrayInputStream byis = new ByteArrayInputStream(allData);
-		    BufferedImage sobelImage = ImageIO.read(byis);
-		    File image = new File(newFilename);
-		    ImageIO.write(sobelImage, "jpg", image);
-		    System.out.println("avertissement dans la console lorsque l’image traitée a été reçue ainsi que\n" +
-					"l’emplacement où elle a été sauvegardée, soit" + newFilename + " dans l'empalcement ...TODO");
-			// TODO: 1-Lors de la réception de l’image traitée, le client devra aussi avertir l’utilisateur
-			// de cet événement et devra aussi lui indiquer le chemin vers l’image reçue du
-			// Serveur
+			BufferedImage sobelImage = ImageIO.read(byis);
+			File image = new File(newFilename);
+			ImageIO.write(sobelImage, "jpg", image);
+			System.out.println("Avertissement dans la console : l’image traitée a été reçue et sauvegardée à l’emplacement suivant : " + newFilename);
 
+			// Wait for the user to press enter before disconnecting
+			System.out.println("Press Enter to disconnect...");
+			System.in.read();
+
+			// Disconnect from the server after processing
+			client.disconnect();
+			break;
 		}
-    }
+	}
 }
