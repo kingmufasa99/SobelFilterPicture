@@ -58,8 +58,8 @@ public class Client {
 		// Perform login
 		String response;
 		do {
-			String username = Utils.getUsername();
-			String pwd = Utils.getPassword();
+			String username = Utils.enterUsername();
+			String pwd = Utils.enterPassword();
 			client.out.println(username);
 			client.out.println(pwd);
 
@@ -104,8 +104,7 @@ public class Client {
 				client.dos.write(imageBytes, 0, imageBytes.length);
 
 				System.out.println("Image sent for modification");
-				System.out.println("[" + Utils.getUsername() + " - "+ Utils.getValidAddressFromUser()+":"+ Utils.getValidPortFromUser() +" - " + java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd'@'HH:mm:ss")) + "] : Image "+Utils.getStringFromUser()+" reçue\n" +
-						"pour traitement.\n");
+
 
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -129,10 +128,10 @@ public class Client {
 			BufferedImage sobelImage = ImageIO.read(byis);
 			File image = new File(newFilename);
 			ImageIO.write(sobelImage, "jpg", image);
-			System.out.println("Avertissement dans la console : l’image traitée a été reçue et sauvegardée à l’emplacement suivant : " + newFilename);
+			System.out.println("Avertissement dans la console : l’image traitée a été reçue et sauvegardée à l’emplacement suivant : " + image.getAbsolutePath());
 
 			// Wait for the user to press enter before disconnecting
-			System.out.println("Press Enter to disconnect...");
+			System.out.println("Press Enter to disconnect the client for security reasons...");
 			System.in.read();
 
 			// Disconnect from the server after processing

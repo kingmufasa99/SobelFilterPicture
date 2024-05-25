@@ -51,15 +51,20 @@ public class Utils {
 		return serverPort;
 	}
 	
-	public static String getUsername() {
+	public static String enterUsername() {
         System.out.print("Enter username: ");
         return scanner.nextLine();
 	}
-	
-	public static String getPassword() {
+
+	public static String enterPassword() {
         System.out.print("Enter password: ");
         return scanner.nextLine();
 	}
+
+	public static String getUsername() {
+		return scanner.nextLine();
+	}
+
 	
 	public static String getStringFromUser() {
 		return scanner.nextLine();
