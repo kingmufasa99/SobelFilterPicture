@@ -1,5 +1,6 @@
 package server;
 
+import client.Client;
 import commun.Message;
 import commun.Utils;
 import java.awt.image.BufferedImage;
@@ -10,6 +11,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Scanner;
 import javax.imageio.ImageIO;
+
+import static client.Client.port;
 
 public class Server {
 
@@ -72,6 +75,7 @@ public class Server {
 
 				// Perform login
 				String username = null;
+
 				while (true) {
 					username = Utils.readNextLineFromSocket(in);
 					String password = Utils.readNextLineFromSocket(in);
@@ -98,8 +102,7 @@ public class Server {
 					String fileName = Utils.readNextLineFromSocket(in);
 					DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd@HH:mm:ss");
 					Date date = new Date();
-					System.out.println("[" + username + " - " + this.socket.getInetAddress().toString() + ":" + this.socket.getPort()
-							+ " - " + dateFormat.format(date) + "] : " + fileName);
+
 
 					// Read data
 					ByteArrayOutputStream dataContainer = new ByteArrayOutputStream();
@@ -126,6 +129,7 @@ public class Server {
 					byte[] imageBytes = baos.toByteArray();
 					baos.close();
 					dos.write(imageBytes, 0, imageBytes.length);
+
 				}
 			} catch (IOException e) {
 				System.out.println("Error with client #" + this.clientNumber + " : " + e);
@@ -138,8 +142,7 @@ public class Server {
 			}
 		}
 
-		@SuppressWarnings("finally")
-		private boolean credentialsMatch(String username, String password) {
+		public boolean credentialsMatch(String username, String password) {
 			File file = new File(this.credentialsFilePath);
 			if (file.exists()) {
 				// Check for username

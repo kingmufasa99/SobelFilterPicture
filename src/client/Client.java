@@ -24,13 +24,17 @@ public class Client {
 	private Socket socket;
 	public DataInputStream dis;
 	public DataOutputStream dos;
+	public static int port;
+	public static String serverAddress;
+	public static String username;
+	public static String newFilename;
 
 	Client() {}
 
 	public void connectToServer() throws IOException {
 		// Get the server address from a dialog box.
-		String serverAddress = Utils.getValidAddressFromUser();
-		int port = Utils.getValidPortFromUser();
+		serverAddress = Utils.getValidAddressFromUser();
+		port = Utils.getValidPortFromUser();
 		socket = new Socket(serverAddress, port);
 
 		System.out.format("Connected to %s:%d%n", serverAddress, port);
@@ -58,7 +62,7 @@ public class Client {
 		// Perform login
 		String response;
 		do {
-			String username = Utils.enterUsername();
+			username = Utils.enterUsername();
 			String pwd = Utils.enterPassword();
 			client.out.println(username);
 			client.out.println(pwd);
@@ -76,7 +80,7 @@ public class Client {
 			String filename = "";
 			while (imageToSend == null) {
 				System.out.println("Please name a file to send");
-				filename = Utils.getStringFromUser();
+				filename = Utils.getFileNameFromUser();
 				try {
 					imageToSend = new File(filename);
 					if (!imageToSend.exists()) {
@@ -91,7 +95,7 @@ public class Client {
 
 			// Set modified file name
 			System.out.println("Please set a name for the modified file");
-			String newFilename = Utils.getStringFromUser();
+			newFilename = Utils.getFileNameFromUser();
 
 			// Send file for modification
 			try {
@@ -103,7 +107,12 @@ public class Client {
 				baos.close();
 				client.dos.write(imageBytes, 0, imageBytes.length);
 
-				System.out.println("Image sent for modification");
+				System.out.println("Image envoyé au serveur pour une modification");
+				System.out.println("[" + username +" - "+ serverAddress +":"
+						+ port +" - " +
+						java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd'@'HH:mm:ss"))
+						+ "] : Image "+newFilename+" reçue\n" +
+						"pour traitement.\n");
 
 
 			} catch (IOException e) {
