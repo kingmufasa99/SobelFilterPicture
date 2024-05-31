@@ -1,6 +1,5 @@
 package server;
 
-import client.Client;
 import commun.Message;
 import commun.Utils;
 import java.awt.image.BufferedImage;
@@ -11,8 +10,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Scanner;
 import javax.imageio.ImageIO;
-
-import static client.Client.port;
 
 public class Server {
 
@@ -67,13 +64,11 @@ public class Server {
 
 		public void run() {
 			try {
-				// Client is connected
 				BufferedReader in = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
 				PrintWriter out = new PrintWriter(this.socket.getOutputStream(), true);
 				DataInputStream dis = new DataInputStream(this.socket.getInputStream());
 				DataOutputStream dos = new DataOutputStream(this.socket.getOutputStream());
 
-				// Perform login
 				String username = null;
 
 				while (true) {
@@ -87,9 +82,7 @@ public class Server {
 					}
 				}
 
-				// Transform pictures
 				while (true) {
-					// Check for disconnect command
 					if (in.ready()) {
 						String command = Utils.readNextLineFromSocket(in);
 						if (command.equals("DISCONNECT")) {
@@ -98,13 +91,11 @@ public class Server {
 						}
 					}
 
-					// Read file name
 					String fileName = Utils.readNextLineFromSocket(in);
 					DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd@HH:mm:ss");
 					Date date = new Date();
 
 
-					// Read data
 					ByteArrayOutputStream dataContainer = new ByteArrayOutputStream();
 					byte[] dataChunk = new byte[Utils.DATA_BUFFER_SIZE];
 					int nBytesReceived = 0;
@@ -116,13 +107,11 @@ public class Server {
 						dataContainer.write(dataChunk, 0, nBytesReceived);
 					} while (nBytesReceived == Utils.DATA_BUFFER_SIZE);
 
-					// Transform image using Sobel filter
 					byte[] allData = dataContainer.toByteArray();
 					ByteArrayInputStream byis = new ByteArrayInputStream(allData);
 					BufferedImage originalImage = ImageIO.read(byis);
 					BufferedImage sobelImage = Sobel.process(originalImage);
 
-					// Send Sobel image to client
 					ByteArrayOutputStream baos = new ByteArrayOutputStream();
 					ImageIO.write(sobelImage, "jpg", baos);
 					baos.flush();
